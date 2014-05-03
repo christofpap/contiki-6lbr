@@ -33,8 +33,8 @@
 /**
  * \file
  *         AVR-specific rtimer code
- *         Defaults to Timer3 for those ATMEGAs that have it.
- *         If Timer3 not present Timer1 will be used.
+ *         Defaults to Timer5 for those ATMEGAs that have it.
+ *         If Timer5 not present Timer1 will be used.
  * \author
  *         Fredrik Osterlind <fros@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
@@ -51,23 +51,23 @@
 #include "rtimer-arch.h"
 
 #if defined(__AVR_ATmega1284P__)
-#define ETIMSK TIMSK3
-#define ETIFR TIFR3
-#define TICIE3 ICIE3
+#define ETIMSK TIMSK5
+#define ETIFR TIFR5
+#define TICIE5 ICIE5
 
 //Has no 'C', so we just set it to B. The code doesn't really use C so this
 //is safe to do but lets it compile. Probably should enable the warning if
 //it is ever used on other platforms.
-//#warning no OCIE3C in timer3 architecture, hopefully it won't be needed!
+//#warning no OCIE5C in timer5 architecture, hopefully it won't be needed!
 
-#define OCIE3C	OCIE3B
-#define OCF3C	OCF3B
+#define OCIE5C	OCIE5B
+#define OCF5C	OCF5B
 #endif
 
 #if defined(__AVR_ATmega1281__) || defined(__AVR_AT90USB1287__) || defined(__AVR_ATmega128RFA1__)
-#define ETIMSK TIMSK3
-#define ETIFR TIFR3
-#define TICIE3 ICIE3
+#define ETIMSK TIMSK5
+#define ETIFR TIFR5
+#define TICIE5 ICIE5
 #endif
 
 #if defined(__AVR_ATmega328P__) || defined(__AVR_ATmega644__)
@@ -85,14 +85,14 @@ extern uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
 #endif
 
 /*---------------------------------------------------------------------------*/
-#if defined(TCNT3) && RTIMER_ARCH_PRESCALER
-ISR (TIMER3_COMPA_vect) {
+#if defined(TCNT5) && RTIMER_ARCH_PRESCALER
+ISR (TIMER5_COMPA_vect) {
   DEBUGFLOW('/');
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
   /* Disable rtimer interrupts */
-  ETIMSK &= ~((1 << OCIE3A) | (1 << OCIE3B) | (1 << TOIE3) |
-      (1 << TICIE3) | (1 << OCIE3C));
+  ETIMSK &= ~((1 << OCIE5A) | (1 << OCIE5B) | (1 << TOIE5) |
+      (1 << TICIE5) | (1 << OCIE5C));
 
 #if RTIMER_CONF_NESTED_INTERRUPTS
   /* Enable nested interrupts. Allows radio interrupt during rtimer interrupt. */
@@ -108,7 +108,7 @@ ISR (TIMER3_COMPA_vect) {
 }
 
 #elif RTIMER_ARCH_PRESCALER
-#warning "No Timer3 in rtimer-arch.c - using Timer1 instead"
+#warning "No Timer5 in rtimer-arch.c - using Timer1 instead"
 ISR (TIMER1_COMPA_vect) {
   DEBUGFLOW('/');
   TIMSK &= ~((1<<TICIE1)|(1<<OCIE1A)|(1<<OCIE1B)|(1<<TOIE1));
@@ -128,34 +128,34 @@ rtimer_arch_init(void)
   sreg = SREG;
   cli ();
 
-#ifdef TCNT3
+#ifdef TCNT5
   /* Disable all timer functions */
-  ETIMSK &= ~((1 << OCIE3A) | (1 << OCIE3B) | (1 << TOIE3) |
-      (1 << TICIE3) | (1 << OCIE3C));
+  ETIMSK &= ~((1 << OCIE5A) | (1 << OCIE5B) | (1 << TOIE5) |
+      (1 << TICIE5) | (1 << OCIE5C));
   /* Write 1s to clear existing timer function flags */
-  ETIFR |= (1 << ICF3) | (1 << OCF3A) | (1 << OCF3B) | (1 << TOV3) |
-  (1 << OCF3C); 
+  ETIFR |= (1 << ICF5) | (1 << OCF5A) | (1 << OCF5B) | (1 << TOV5) |
+  (1 << OCF5C); 
 
   /* Default timer behaviour */
-  TCCR3A = 0;
-  TCCR3B = 0;
-  TCCR3C = 0;
+  TCCR5A = 0;
+  TCCR5B = 0;
+  TCCR5C = 0;
 
   /* Reset counter */
-  TCNT3 = 0;
+  TCNT5 = 0;
 
 #if RTIMER_ARCH_PRESCALER==1024
-  TCCR3B |= 5;
+  TCCR5B |= 5;
 #elif RTIMER_ARCH_PRESCALER==256
-  TCCR3B |= 4;
+  TCCR5B |= 4;
 #elif RTIMER_ARCH_PRESCALER==64
-  TCCR3B |= 3;
+  TCCR5B |= 3;
 #elif RTIMER_ARCH_PRESCALER==8
-  TCCR3B |= 2;
+  TCCR5B |= 2;
 #elif RTIMER_ARCH_PRESCALER==1
-  TCCR3B |= 1;
+  TCCR5B |= 1;
 #else
-#error Timer3 PRESCALER factor not supported.
+#error Timer5 PRESCALER factor not supported.
 #endif
 
 #elif RTIMER_ARCH_PRESCALER
@@ -187,7 +187,7 @@ rtimer_arch_init(void)
 #error Timer1 PRESCALER factor not supported.
 #endif
 
-#endif /* TCNT3 */
+#endif /* TCNT5 */
 
   /* Restore interrupt state */
   SREG = sreg;
@@ -203,14 +203,14 @@ rtimer_arch_schedule(rtimer_clock_t t)
   sreg = SREG;
   cli ();
   DEBUGFLOW(':');
-#ifdef TCNT3
+#ifdef TCNT5
   /* Set compare register */
-  OCR3A = t;
+  OCR5A = t;
   /* Write 1s to clear all timer function flags */
-  ETIFR |= (1 << ICF3) | (1 << OCF3A) | (1 << OCF3B) | (1 << TOV3) |
-  (1 << OCF3C);
-  /* Enable interrupt on OCR3A match */
-  ETIMSK |= (1 << OCIE3A);
+  ETIFR |= (1 << ICF5) | (1 << OCF5A) | (1 << OCF5B) | (1 << TOV5) |
+  (1 << OCF5C);
+  /* Enable interrupt on OCR5A match */
+  ETIMSK |= (1 << OCIE5A);
 
 #elif RTIMER_ARCH_PRESCALER
   /* Set compare register */
@@ -291,10 +291,10 @@ uint32_t longhowlong;
 /* Disable sleep mode after wakeup, so random code cant trigger sleep */
     SMCR  &= ~(1 << SE);
 
-/* Adjust rtimer ticks if rtimer is enabled. TIMER3 is preferred, else TIMER1 */
+/* Adjust rtimer ticks if rtimer is enabled. TIMER5 is preferred, else TIMER1 */
 #if RTIMER_ARCH_PRESCALER
-#ifdef TCNT3
-    TCNT3 += howlong;
+#ifdef TCNT5
+    TCNT5 += howlong;
 #else
     TCNT1 += howlong;
 #endif

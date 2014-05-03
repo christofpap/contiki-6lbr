@@ -40,7 +40,7 @@
  * with shorter maximum intervals.
  * Setting RTIMER_ARCH_PRESCALER to 0 will leave Timers alone.
  * rtimer_arch_now() will then return 0, likely hanging the cpu if used.
- * Timer1 is used if Timer3 is not available.
+ * Timer1 is used if Timer5 is not available.
  *
  * Note the rtimer tick to clock tick conversion will be nominally correct only
  * when the same oscillator is used for both clocks.
@@ -59,8 +59,8 @@
 #endif
 
 
-#ifdef TCNT3
-#define rtimer_arch_now() (TCNT3)
+#ifdef TCNT5
+#define rtimer_arch_now() (TCNT5)
 #elif RTIMER_ARCH_PRESCALER
 #define rtimer_arch_now() (TCNT1)
 #else
