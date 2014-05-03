@@ -104,6 +104,7 @@ bin/cetic_6lbr_full_transparent_bridge:
 	mv cetic-6lbr.native bin/cetic_6lbr_full_transparent_bridge 
 
 bin/cetic_6lbr_router:
+	mkdir -p bin
 	$(MAKE) TARGET=native CETIC_6LBR_ROUTER=1 $(NATIVE_CONF)
 	mv cetic-6lbr.native bin/cetic_6lbr_router 
 
