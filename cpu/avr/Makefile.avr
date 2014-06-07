@@ -103,8 +103,8 @@ ifndef BOOTLOADER_START
   BOOTLOADER_START = 0x1F800
 endif
 
-LDFLAGS  += -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map \
-           -Wl,--section-start=.bootloader=$(BOOTLOADER_START)
+LDFLAGS  += -mmcu=$(MCU) -mrelax -lm -Wl,-Map=contiki-$(TARGET).map \
+           -Wl,--section-start=.bootloader=$(BOOTLOADER_START) 
 
 SMALL ?= 1
 
